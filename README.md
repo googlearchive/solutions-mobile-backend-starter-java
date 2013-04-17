@@ -22,8 +22,11 @@ by clicking Try It Now.
 
 The instruction below lists just some key steps.
 For detailed setup instructions and documentation visit [Google App Engine developer site] (https://developers.google.com/cloud/samples/mbs).
+
 1. Import the project into Eclipse.
+
 2. Edit war/WEB-INF/appengine-web.xml and insert your app id in `application` XML element.
+
 3. Deploy the backend to App Engine.
 
 [1]: https://developers.google.com/appengine
