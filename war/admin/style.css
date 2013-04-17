@@ -1,0 +1,208 @@
+
+body, td {
+  background: #f8f8f8 url('img/bg.gif') repeat;
+  font: 13px/19px Arial, Helvetica, sans-serif;
+  color: #222;
+}
+
+.butter {
+  background: #EE6;
+  font-weight: bold;
+  padding: 6px;
+  width: 400px;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 3px 3px 8px #aaa;
+  display: none;
+}
+
+.butterRed {
+  background: #C44;
+  font-weight: bold;
+  padding: 6px;
+  width: 400px;
+  color: #fff;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 3px 3px 8px #aaa;
+  display: none;
+}
+
+.butter-bar-reserve {
+  height: 25px;
+}
+
+.glow {
+  width: 615px;
+  margin-right: 0;
+  height: 8px;
+  margin-top: 22px;
+  opacity: 1;
+  border-top: 1px solid rgba(0, 0, 0, 0.4);
+  background: -webkit-gradient(linear, left top, left bottom, from(rgba(0, 0, 0, .3)), to(transparent));
+  -webkit-mask-box-image: -webkit-gradient(linear, left top, right top, color-stop(0.0, rgba(0,0,0,0)), color-stop(0.5, rgba(0,0,0,.8)), color-stop(1.0, rgba(0,0,0,0)));
+}
+
+div.item {
+  font-size: 14px;
+  color: 222;
+}
+
+span.small {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.toggle {
+  margin-top: 15px;
+}
+
+/* starting here */
+
+
+a {
+  color: #106ee1;
+}
+
+.wrap {
+  margin: 0 auto;
+  padding: 0 5px;
+  max-width: 950px;
+}
+
+.header {
+  background: #f8f8f8 url('img/bg.gif') repeat;
+  margin: -8px 0 0 -1px;
+  padding: 0 0 16px 0;
+  width: 100%;
+}
+
+.header h3 {
+  font-weight: normal;
+  font-size: 19px;
+}
+
+#form table {
+  border-collapse: collapse;
+}
+
+#form table td {
+  margin: 0;
+}
+
+.section-label-col {
+  font-weight: bold;
+  vertical-align: top;
+  white-space: nowrap;
+  text-align: right;
+  padding-bottom: 22px;
+  padding-right: 11px;
+}
+
+.input-col {
+  padding-bottom: 22px;
+}
+
+.input-col .label-area {
+  display: inline-block;
+  vertical-align: top;
+  width: 70%;
+}
+
+.subtext {
+  color: #555;
+  margin: 0;
+}
+
+.input-col .label-area label {
+  color: #222;
+}
+
+.subtext label {
+  font-weight: bold;
+  font-size: 12px;
+  display: block;
+}
+
+.subtext label a {
+  font-weight: normal;
+}
+
+input.text-field {
+  border: 1px solid #e0e0e0;
+  padding: 4px;
+  border: 1px solid #BDBDBD;
+  border-radius: 3px;
+  box-shadow: 0 0 2px #d8d8d8;
+  display: block;
+  margin: 2px 0 7px 0;
+  padding: 10px;
+  width: 100%;
+}
+
+
+.input-col .radio-selection {
+  margin-bottom: 11px;
+}
+
+hr {
+  padding: 0;
+  margin: 33px 0;
+  height: 1px;
+  background: #cdcdcd;
+  outline: 0;
+  border: 0;
+}
+
+.btn {
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 12px;
+  margin: 0;
+  padding: 5px 14px;
+  text-decoration: none;
+}
+
+.active {
+  color: #fff;
+  background: -webkit-gradient(linear, left top, left bottom, from(#42aaff),to(#005BA5));
+  border: 1px solid #005BA5;
+  box-shadow: 0 0 3px #888;
+  text-shadow: 0 -1px 0 #005BA5;
+}
+
+.active:hover {
+  box-shadow: 0 0 5px #555;
+}
+
+.active:active {
+  box-shadow: inset 0 0 5px #666;
+}
+
+.inactive {
+  color: #333;
+  background: -webkit-gradient(linear, left top, left bottom, from(#FAFAFA),to(#DCDCDC));
+  border: 1px solid #c3c3c3;
+  box-shadow: 0 0 3px #d3d3d3;
+  text-shadow: 0 -1px 0 #f8f8f8;
+}
+
+.inactive:hover {
+  box-shadow: 0 0 4px #aaa;
+}
+
+.inactive:active {
+  box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.25),0 1px 0 white
+}
+
+.cancel {
+  color: #6E83FF;
+  font-size: 12px;
+  margin: 0 0 0 14px;
+  text-decoration: none;
+  text-shadow: 0 -1px 0 #fff;
+  cursor: pointer;
+}

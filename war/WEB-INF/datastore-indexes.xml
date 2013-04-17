@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<datastore-indexes autoGenerate="false">
+  <datastore-index kind="_CloudMessages" ancestor="false">
+    <property name="topicId" direction="asc"/>
+    <property name="_createdAt" direction="desc"/>
+  </datastore-index>
+</datastore-indexes>
