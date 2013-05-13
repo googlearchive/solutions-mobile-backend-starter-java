@@ -16,6 +16,7 @@ package com.google.cloud.backend.spi;
 import com.google.api.server.spi.config.AnnotationBoolean;
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
+import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.NotFoundException;
 import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.appengine.api.users.User;
@@ -29,7 +30,9 @@ import javax.inject.Named;
  * An endpoint for all CloudBackend requests.
  *
  */
-@Api(name = "mobilebackend", useDatastoreForAdditionalConfig = AnnotationBoolean.TRUE)
+@Api(name = "mobilebackend", namespace = @ApiNamespace(ownerDomain = "google.com",
+    ownerName = "google.com", packagePath = "cloud.backend.android"),
+    useDatastoreForAdditionalConfig = AnnotationBoolean.TRUE)
 public class EndpointV1 {
 
   /**
