@@ -1,35 +1,45 @@
-solutions-mobile-backend-starter-Java
-=====================================
+solutions-mobile-backend-starter-android-client
+===============================================
 
-This application implements Mobile Backend Starter using
-Google Cloud Endpoints, App Engine and Java.
+This project is Android native client sample for Mobile Backend Starter.
 
 Disclaimer: This is not an official Google Product.
 
 ## Products
 - [App Engine][1]
+- [Android][2]
 
 ## Language
 - [Java][3]
 
 ## APIs
-- [Google Cloud Endpoints][2]
+- [Google Cloud Endpoints][4]
 
 ## Setup Instructions
-You typically need to use this repository only if you want to extend the functionality provided by
-Mobile Backend Starter. Otherwise, you can deploy it directly from [Google Cloud Platform site] (https://cloud.google.com/solutions/mobile)
-by clicking Try It Now.
-
 The instruction below lists just some key steps.
-For detailed setup instructions and documentation visit [Google App Engine developer site] (https://developers.google.com/cloud/samples/mbs).
 
-1. Import the project into Eclipse.
+For detailed setup instructions and documentation visit [Google App Engine developer site](https://developers.google.com/cloud/samples/mbs).
+It may also be helpful to watch this [Google I/O session](https://developers.google.com/events/io/sessions/333508149) and read the corresponding [blog post](http://bradabrams.com/2013/05/google-io-2013-session-overview-from-nothing-to-nirvana-in-minutes-cloud-backend-for-your-android-application-building-geek-serendipity/).
 
-2. Edit war/WEB-INF/appengine-web.xml and insert your app id in `application` XML element.
+1. Make sure you have Android SDK with Google APIs level 15 or above installed.
 
-3. Deploy the backend to App Engine.
+2. Import the project into Eclipse by selecting File > Import > General > Existing Projects into Workspace and then supplying the directory where you unzipped the downloaded  project.
+
+3. If you don't have Google API level 16 installed then in project properties,
+   select Android and change Project Build Target to Google APIs with API Level 15 or above.
+
+4. Update the value of `PROJECT_ID` in
+   `src/com/google/cloud/backend/android/Consts.java` to the app_id of your
+   deployed Mobile Backend [5]. Make sure that your Mobile Backend is configured
+   with OPEN mode.
+
+5. Run the application. All required jars and other files are included in the GitHub repository.
+If you see any compilation or build errors they most likely can be resolved by following the steps in [the documentation](https://developers.google.com/cloud/samples/mbs/getting_started).
+
 
 [1]: https://developers.google.com/appengine
-[2]: https://developers.google.com/appengine/docs/java/endpoints/
+[2]: http://developer.android.com/index.html
 [3]: http://java.com/en/
+[4]: https://developers.google.com/appengine/docs/java/endpoints/
+[5]: https://github.com/GoogleCloudPlatform/solutions-mobile-backend-starter-java
 
