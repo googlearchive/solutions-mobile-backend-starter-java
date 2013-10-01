@@ -17,6 +17,7 @@ import com.google.android.gcm.server.Message;
 import com.google.android.gcm.server.Result;
 import com.google.android.gcm.server.Sender;
 import com.google.cloud.backend.config.BackendConfigManager;
+import com.google.cloud.backend.pushnotification.Utility;
 
 import java.io.IOException;
 import java.util.logging.Logger;
@@ -34,40 +35,80 @@ public class ProspectiveSearchServlet extends HttpServlet {
 
   private static final int GCM_SEND_RETRIES = 3;
 
+  private static final String IOS_DEVICE_PREFIX = "ios_";
+
   private static final Logger log = Logger.getLogger(ProspectiveSearchServlet.class.getName());
 
   protected static final String GCM_KEY_SUBID = "subId";
 
   private final BackendConfigManager backendConfigManager = new BackendConfigManager();
 
+  private enum MobileType {
+    ANDROID,
+    IOS
+  }
+
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
-    // get GCM configs
-    if (!backendConfigManager.isGcmEnabled()) {
-      log.info("ProspectiveSearchServlet: couldn't send GCM because GCM is disabled.");
-      return;
-    }
-    String gcmKey = backendConfigManager.getGcmKey();
-    if (gcmKey == null || gcmKey.trim().length() == 0) {
-      log.info("ProspectiveSearchServlet: couldn't send GCM because GCM key is empty.");
+    // Return if push notification is not enabled
+    if (!backendConfigManager.isPushEnabled()) {
+      log.info("ProspectiveSearchServlet: couldn't send push notification because it is disabled.");
       return;
     }
 
     // dispatch GCM messages to each subscribers
     String[] subIds = req.getParameterValues("id");
+    // Each subId has this format "<regId>:query:<clientSubId>"
     for (String subId : subIds) {
-      String[] tokens = subId.split(":");
-      String regId = tokens[0];
+      String regId = extractRegId(subId);
+      MobileType type = getMobileType(subId);
+
+      if (MobileType.ANDROID == type) {
+        sendGcmAlert(subId, regId);
+      } else if (MobileType.IOS == type) {
+        sendIosAlert(subId, new String[] {regId});
+      }
+    }
+  }
+
+  private MobileType getMobileType(String subId) {
+    return (subId.startsWith(IOS_DEVICE_PREFIX)) ? MobileType.IOS :
+        MobileType.ANDROID;
+  }
+
+  private String extractRegId(String subId) {
+    String[] tokens = subId.split(":");
+    return tokens[0].replaceFirst(IOS_DEVICE_PREFIX, "");
+  }
+
+  private void sendGcmAlert(String subId, String regId)
+      throws IOException {
+    String gcmKey = backendConfigManager.getGcmKey();
+    boolean isGcmKeySet = !(gcmKey == null || gcmKey.trim().length() == 0);
+
+    // Only attempt to send GCM if GcmKey is available
+    if (isGcmKeySet) {
       Sender sender = new Sender(gcmKey);
-      Message message = new Message.Builder().addData(GCM_KEY_SUBID, subId).build();
+      Message message = new Message.Builder().addData(GCM_KEY_SUBID, subId).
+          build();
       Result r = sender.send(message, regId, GCM_SEND_RETRIES);
       if (r.getMessageId() != null) {
         log.info("ProspectiveSearchServlet: GCM sent: subId: " + subId);
       } else {
-        log.warning("ProspectiveSearchServlet: GCM error for subId: " + subId + ", senderId: "
-            + gcmKey + ", error: " + r.getErrorCodeName());
+        log.warning("ProspectiveSearchServlet: GCM error for subId: " + subId +
+            ", senderId: " + gcmKey + ", error: " + r.getErrorCodeName());
       }
+    } else {
+      // Otherwise, just write a log entry
+      log.info(String.format("ProspectiveSearchServlet: GCM is not sent: GcmKey: %s ",
+          isGcmKeySet));
     }
+  }
+
+  private void sendIosAlert(String subId, String[] deviceTokens) {
+    log.info("Sending iOS push alert to backend");
+    Utility.enqueuePushAlert(subId, deviceTokens);
+    log.info("Push alert enqueued successfully");
   }
 }

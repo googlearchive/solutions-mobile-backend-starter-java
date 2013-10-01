@@ -1,0 +1,6 @@
+<queue-entries>
+  <queue>
+    <name>notification-delivery</name>
+    <mode>pull</mode>
+  </queue>
+</queue-entries>

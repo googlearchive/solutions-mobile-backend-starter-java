@@ -50,6 +50,11 @@ div.item {
   color: 222;
 }
 
+div.headerLabel {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
 span.small {
   font-size: 14px;
   font-weight: bold;
@@ -82,6 +87,11 @@ a {
 .header h3 {
   font-weight: normal;
   font-size: 19px;
+}
+
+h2, .header2 {
+  font-weight: normal;
+  font-size: 23px;
 }
 
 #form table {
@@ -205,4 +215,8 @@ hr {
   text-decoration: none;
   text-shadow: 0 -1px 0 #fff;
   cursor: pointer;
+}
+
+#pushCertFile {
+  display: none;
 }

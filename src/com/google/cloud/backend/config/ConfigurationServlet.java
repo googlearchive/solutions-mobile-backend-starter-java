@@ -65,7 +65,7 @@ public class ConfigurationServlet extends HttpServlet {
   private static final String PARAM_OPERATION_PUSHMSG = "pushmsg";
 
   private static final String PARAM_OPERATION_CLEAR_SUBSCRIPTIONS = "clearsubs";
-  
+
   private static final String PARAM_TOKEN = "token";
 
   private static final String JSON_RESP_PROP_MESSAGE = "message";
@@ -77,7 +77,7 @@ public class ConfigurationServlet extends HttpServlet {
     // process request
     JsonObject jsonResponse = new JsonObject();
     String mode = req.getParameter(PARAM_OPERATION);
-    
+
     try {
       if (!XSRFTokenUtility.verifyToken(configMgr.getSecretKey(), 
           mode, req.getParameter(PARAM_TOKEN))) {
@@ -122,6 +122,8 @@ public class ConfigurationServlet extends HttpServlet {
         (Boolean) config.getProperty(BackendConfigManager.PUSH_ENABLED));
     jsonResponse.addProperty(BackendConfigManager.ANDROID_GCM_KEY,
         (String) config.getProperty(BackendConfigManager.ANDROID_GCM_KEY));
+    jsonResponse.addProperty(BackendConfigManager.PUSH_NOTIFICATION_CERT_PASSWORD,
+        (String) config.getProperty(BackendConfigManager.PUSH_NOTIFICATION_CERT_PASSWORD));
   }
 
   private void saveConfig(HttpServletRequest req, JsonObject jsonResponse) {
@@ -131,7 +133,9 @@ public class ConfigurationServlet extends HttpServlet {
         req.getParameter(BackendConfigManager.IOS_CLIENT_ID),
         req.getParameter(BackendConfigManager.AUDIENCE),
         Boolean.valueOf(req.getParameter(BackendConfigManager.PUSH_ENABLED)),
-        req.getParameter(BackendConfigManager.ANDROID_GCM_KEY));
+        req.getParameter(BackendConfigManager.ANDROID_GCM_KEY),
+        req.getParameter(BackendConfigManager.PUSH_NOTIFICATION_CERT_PASSWORD),
+        req.getParameter(BackendConfigManager.PUSH_NOTIFICATION_CERT_BINARY));
     jsonResponse.addProperty(JSON_RESP_PROP_MESSAGE, "Settings Saved.");
   }
 
@@ -191,7 +195,7 @@ public class ConfigurationServlet extends HttpServlet {
     }
     jsonResp.addProperty(JSON_RESP_PROP_MESSAGE, "Cleared all subscriptions.");
   }
-  
+
   /**
    * Gets a token that can be used to prevent XSRF attacks.
    *

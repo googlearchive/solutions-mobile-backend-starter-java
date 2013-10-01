@@ -19,18 +19,25 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
 
+import org.apache.commons.codec.binary.Base64;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Class that manages the backend configuration stored in App Engine Datastore.
  */
 public class BackendConfigManager {
+
   /**
    * Kind name for storing backend configuration.
    */
@@ -41,6 +48,11 @@ public class BackendConfigManager {
   static final String AUDIENCE = "audience";
   static final String PUSH_ENABLED = "pushEnabled";
   static final String ANDROID_GCM_KEY = "gCMKey";
+  static final String PUSH_NOTIFICATION_CERT_PASSWORD = "pushCertPasswd";
+  static final String PUSH_NOTIFICATION_CERT_BINARY = "pushCertBinary";
+  static final String MEMCACHE_FILE_KEY = "memcache file key";
+  static final String PKCS12_BASE64_PREFIX = "pkcs12;base64,";
+
   private static final String PER_APP_SECRET_KEY = "secretKey";
   private static final String CURRENT_CONFIGURATION = "Current";
 
@@ -48,6 +60,7 @@ public class BackendConfigManager {
   private final MemcacheService memcache;
 
   private final CloudEndpointsConfigManager endpointsConfigManager;
+  private static final Logger log = Logger.getLogger(BackendConfigManager.class.getName());
 
   /**
    * Authentication Mode for the backend
@@ -74,7 +87,8 @@ public class BackendConfigManager {
    * Default constructor.
    */
   public BackendConfigManager() {
-    this(DatastoreServiceFactory.getDatastoreService(), MemcacheServiceFactory.getMemcacheService());
+    this(DatastoreServiceFactory.getDatastoreService(),
+        MemcacheServiceFactory.getMemcacheService());
   }
 
   /**
@@ -122,13 +136,13 @@ public class BackendConfigManager {
     }
 
     // put the config entity to memcache and return it
-    memcache.put(key, config);
+    memcache.put(getMemKeyForConfigEntity(key), config);
     return config;
   }
 
   protected void setConfiguration(String authMode, String androidClientId, String iOSClientId,
-      String audience, boolean pushEnabled, String androidGCMKey) {
-
+      String audience, boolean pushEnabled, String androidGCMKey, String pushCertPasswd,
+      String pushCertBase64String) {
     // put config entity into Datastore and Memcache
     Key key = getKey();
     Entity configuration;
@@ -143,6 +157,16 @@ public class BackendConfigManager {
     configuration.setProperty(AUDIENCE, audience);
     configuration.setProperty(PUSH_ENABLED, pushEnabled);
     configuration.setProperty(ANDROID_GCM_KEY, androidGCMKey);
+    configuration.setProperty(PUSH_NOTIFICATION_CERT_PASSWORD, pushCertPasswd);
+    if (pushCertBase64String != null && !pushCertBase64String.isEmpty()) {
+      Text data = removeClientHeaderFromData(pushCertBase64String);
+      if (data == null) {
+        log.severe("Input file is not saved as it is not in expected format and encoding");
+      } else {
+        configuration.setProperty(PUSH_NOTIFICATION_CERT_BINARY, data);
+      }
+    }
+
     datastoreService.put(configuration);
     memcache.put(getMemKeyForConfigEntity(key), configuration);
 
@@ -163,6 +187,12 @@ public class BackendConfigManager {
     if (audience != null && !audience.isEmpty()) {
       clientIds.add(audience);
       audiences.add(audience);
+    } else {
+      audiences.add(new String());
+    }
+
+    if (clientIds.size() == 0) {
+      clientIds.add(new String());
     }
 
     endpointsConfigManager.setAuthenticationInfo(clientIds, audiences);
@@ -194,16 +224,62 @@ public class BackendConfigManager {
     return (String) getConfiguration().getProperty(ANDROID_GCM_KEY);
   }
 
-  /**
-   * Returns true if GCM is enabled.
+  /***
+   * Returns Push Notification Certificate password.
    * 
-   * @return true if GCM is enabled, false otherwise.
+   * @return Push Notification Certificate password.
    */
-  public boolean isGcmEnabled() {
+  public String getPushCertPassword() {
+    return (String) getConfiguration().getProperty(PUSH_NOTIFICATION_CERT_PASSWORD);
+  }
+
+  /**
+   * Return the push notification certificate as a base64-decoded input stream
+   * 
+   * @return the push notification certificate as a base64-decoded input stream or null
+   *     if Datastore returns nothing 
+   */
+  public InputStream getPushNotificationCertificate() {
+    Text binary = (Text) getConfiguration().getProperty(PUSH_NOTIFICATION_CERT_BINARY);
+    if (binary == null) {
+      return null;
+    }
+
+    return new ByteArrayInputStream(Base64.decodeBase64(binary.getValue().getBytes()));
+  }
+
+  /**
+   * Returns true if Push Notification is enabled.
+   * 
+   * @return true if Push Notification is enabled, false otherwise.
+   */
+  public boolean isPushEnabled() {
     return (Boolean) getConfiguration().getProperty(PUSH_ENABLED);
   }
 
   protected String getSecretKey() {
     return (String) getConfiguration().getProperty(PER_APP_SECRET_KEY);
+  }
+
+  /**
+   * Based64 encoded data from the front end contains prefix 
+   * (i.e. "data:application/x-pkcs12;base64,"), this method is to extract the data without 
+   * the prefix
+   * 
+   * @param base64String from client
+   * @return extracted data without prefix
+   */
+  private Text removeClientHeaderFromData(String base64String) {
+    int index = base64String.indexOf(PKCS12_BASE64_PREFIX);
+    if (index < 0) {
+      return null;
+    }
+
+    String data = base64String.substring(index + PKCS12_BASE64_PREFIX.length());
+    if (Base64.isBase64(data)) {
+      return new Text(data);
+    } else {
+      return null;
+    }
   }
 }

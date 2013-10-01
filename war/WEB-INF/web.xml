@@ -38,17 +38,30 @@
      <url-pattern>/admin/cconf</url-pattern>
   </servlet-mapping>
 
-    <security-constraint>
-        <web-resource-collection>
-            <url-pattern>/admin/*</url-pattern>
-        </web-resource-collection>
-        <auth-constraint>
-            <role-name>admin</role-name>
-        </auth-constraint>
-    </security-constraint>
+  <servlet>
+    <servlet-name>WorkerServlet</servlet-name>
+    <servlet-class>com.google.cloud.backend.pushnotification.WorkerServlet</servlet-class>
+  </servlet>
 
-    <welcome-file-list>
-        <welcome-file>index.html</welcome-file>
-    </welcome-file-list>
+  <servlet-mapping>
+    <servlet-name>WorkerServlet</servlet-name>
+    <url-pattern>/_ah/start</url-pattern>
+  </servlet-mapping>
+
+  <security-constraint>
+    <web-resource-collection>
+      <url-pattern>/admin/*</url-pattern>
+    </web-resource-collection>
+    <user-data-constraint>
+      <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+    </user-data-constraint>
+    <auth-constraint>
+      <role-name>admin</role-name>
+    </auth-constraint>
+  </security-constraint>
+
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+  </welcome-file-list>
 
 </web-app>
