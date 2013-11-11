@@ -14,10 +14,8 @@
 package com.google.cloud.backend.beans;
 
 import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Query.CompositeFilter;
 import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
 import com.google.appengine.api.datastore.Query.Filter;
-import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.prospectivesearch.FieldType;
 
 import java.util.Date;
@@ -33,22 +31,21 @@ import javax.xml.datatype.DatatypeFactory;
  * Represents an AST (abstract syntax tree) made of filters that represents a
  * query filter for a {@link QueryDto}. Equivalent to {@link FilterPredicate}
  * and {@link CompositeFilter} of Datastore query.
- *
+ * 
  * The values property takes different number of elements depending on the Op:
- *
+ * 
  * - For EQ, LT, LE, GT, GE, NE: This object works as a filter predicate. Values
  * should have two values, where the first value should be a property name and
  * the second value should be a value.
- *
+ * 
  * - For IN: This object works as a filter predicate with IN op. Values may have
  * any number of values.
- *
+ * 
  * - For AND, OR: This works as a composite filter. Values may have any number
  * of FilterDto instances.
- *
+ * 
  * TODO: This kind of behaviors should be implemented by polymorphism, but
  * Endpoints doesn't support inheritance.
- *
  */
 public class FilterDto {
 
@@ -62,6 +59,9 @@ public class FilterDto {
     }
   }
 
+  /**
+   * Filter operations
+   */
   public enum Op {
     EQ, LT, LE, GT, GE, NE, IN, AND, OR
   }
@@ -238,6 +238,7 @@ public class FilterDto {
       break;
     case IN: // IN supports only String
       schema.put(getPropName(), FieldType.STRING);
+      break;
     case AND:
     case OR:
       for (FilterDto cb : this.subfilters) {

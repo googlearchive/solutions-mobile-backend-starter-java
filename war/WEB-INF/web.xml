@@ -5,7 +5,7 @@
   <servlet-class>com.google.api.server.spi.SystemServiceServlet</servlet-class>
   <init-param>
    <param-name>services</param-name>
-   <param-value>com.google.cloud.backend.spi.EndpointV1</param-value>
+   <param-value>com.google.cloud.backend.spi.BlobEndpoint,com.google.cloud.backend.spi.EndpointV1</param-value>
   </init-param>
  </servlet>
 
@@ -46,6 +46,42 @@
   <servlet-mapping>
     <servlet-name>WorkerServlet</servlet-name>
     <url-pattern>/_ah/start</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>PushFeedbackProcessingServlet</servlet-name>
+    <servlet-class>com.google.cloud.backend.pushnotification.PushFeedbackProcessingServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>PushFeedbackProcessingServlet</servlet-name>
+    <url-pattern>/admin/push/feedbackservice/process</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>NotificationCleanupServlet</servlet-name>
+    <servlet-class>com.google.cloud.backend.pushnotification.NotificationCleanupServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>NotificationCleanupServlet</servlet-name>
+    <url-pattern>/admin/push/notifications/cleanup</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>DeviceCleanupServlet</servlet-name>
+    <servlet-class>com.google.cloud.backend.pushnotification.DeviceCleanupServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DeviceCleanupServlet</servlet-name>
+    <url-pattern>/admin/push/device/cleanup</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>SubscriptionRemovalServlet</servlet-name>
+    <servlet-class>com.google.cloud.backend.spi.SubscriptionRemovalServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>SubscriptionRemovalServlet</servlet-name>
+    <url-pattern>/admin/push/devicesubscription/delete</url-pattern>
   </servlet-mapping>
 
   <security-constraint>

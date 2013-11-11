@@ -21,7 +21,6 @@ import java.util.List;
 
 /**
  * Provides a container for multiple {@link EntityDto} objects.
- *
  */
 public class EntityListDto {
 
@@ -37,7 +36,7 @@ public class EntityListDto {
 
   /**
    * Returns a List of Ids of all {@link EntityDto}s.
-   *
+   * 
    * @return {@link List} of Ids.
    */
   public List<String> readIdList() {
@@ -50,7 +49,7 @@ public class EntityListDto {
 
   /**
    * Returns a List of {@link Key}s for all {@link EntityDto}s.
-   *
+   * 
    * @return List of {@link Key}s for all {@link EntityDto}s.
    */
   public List<Key> readKeyList(User user) {
@@ -63,7 +62,7 @@ public class EntityListDto {
 
   /**
    * Adds the specified {@link EntityDto} to the list.
-   *
+   * 
    * @param cd
    *          {@link EntityDto} to add.
    */

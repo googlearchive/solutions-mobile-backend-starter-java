@@ -16,7 +16,9 @@ package com.google.cloud.backend.spi;
 import com.google.api.server.spi.config.AnnotationBoolean;
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
+import com.google.api.server.spi.config.ApiMethod.HttpMethod;
 import com.google.api.server.spi.config.ApiNamespace;
+import com.google.api.server.spi.response.BadRequestException;
 import com.google.api.server.spi.response.NotFoundException;
 import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.appengine.api.users.User;
@@ -28,7 +30,6 @@ import javax.inject.Named;
 
 /**
  * An endpoint for all CloudBackend requests.
- *
  */
 @Api(name = "mobilebackend", namespace = @ApiNamespace(ownerDomain = "google.com",
     ownerName = "google.com", packagePath = "cloud.backend.android"),
@@ -49,7 +50,7 @@ public class EndpointV1 {
    *           if the requesting {@link User} has no sufficient permission for
    *           the operation.
    */
-  @ApiMethod(path = "CloudEntities/insert/{kind}", httpMethod = "POST")
+  @ApiMethod(path = "CloudEntities/insert/{kind}", httpMethod = HttpMethod.POST)
   public EntityDto insert(@Named("kind") String kindName, EntityDto cd, User user)
       throws UnauthorizedException {
 
@@ -98,7 +99,7 @@ public class EndpointV1 {
    *           if the requesting {@link User} has no sufficient permission for
    *           the operation.
    */
-  @ApiMethod(path = "CloudEntities/insertAll", httpMethod = "POST")
+  @ApiMethod(path = "CloudEntities/insertAll", httpMethod = HttpMethod.POST)
   // the path need to include the op name to distinguish between saveAll and
   // getAll.
   public EntityListDto insertAll(EntityListDto cdl, User user) throws UnauthorizedException {
@@ -120,7 +121,7 @@ public class EndpointV1 {
    *           if the requesting {@link User} has no sufficient permission for
    *           the operation.
    */
-  @ApiMethod(path = "CloudEntities/updateAll", httpMethod = "POST")
+  @ApiMethod(path = "CloudEntities/updateAll", httpMethod = HttpMethod.POST)
   // the path need to include the op name to distinguish between saveAll and
   // getAll.
   public EntityListDto updateAll(EntityListDto cdl, User user) throws UnauthorizedException {
@@ -143,7 +144,7 @@ public class EndpointV1 {
    * @throws NotFoundException
    *           if the requested CloudEntity has not found
    */
-  @ApiMethod(path = "CloudEntities/{kind}/{id}", httpMethod = "GET")
+  @ApiMethod(path = "CloudEntities/{kind}/{id}", httpMethod = HttpMethod.GET)
   public EntityDto get(@Named("kind") String kindName, @Named("id") String id, User user)
       throws UnauthorizedException, NotFoundException {
 
@@ -160,7 +161,7 @@ public class EndpointV1 {
    *           if the requesting {@link User} has no sufficient permission for
    *           the operation.
    */
-  @ApiMethod(path = "CloudEntities/getAll", httpMethod = "POST")
+  @ApiMethod(path = "CloudEntities/getAll", httpMethod = HttpMethod.POST)
   public EntityListDto getAll(EntityListDto cdl, User user) throws UnauthorizedException {
 
     SecurityChecker.getInstance().checkIfUserIsAvailable(user);
@@ -180,7 +181,7 @@ public class EndpointV1 {
    *           if the requesting {@link User} has no sufficient permission for
    *           the operation.
    */
-  @ApiMethod(path = "CloudEntities/{kind}/{id}", httpMethod = "DELETE")
+  @ApiMethod(path = "CloudEntities/{kind}/{id}", httpMethod = HttpMethod.DELETE)
   public EntityDto delete(@Named("kind") String kindName, @Named("id") String id, User user)
       throws UnauthorizedException {
 
@@ -199,7 +200,7 @@ public class EndpointV1 {
    *           if the requesting {@link User} has no sufficient permission for
    *           the operation.
    */
-  @ApiMethod(path = "CloudEntities/deleteAll", httpMethod = "POST")
+  @ApiMethod(path = "CloudEntities/deleteAll", httpMethod = HttpMethod.POST)
   // DELETE can't have content body
   public EntityListDto deleteAll(EntityListDto cdl, User user) throws UnauthorizedException {
 
@@ -218,11 +219,17 @@ public class EndpointV1 {
    * @throws UnauthorizedException
    *           if the requesting {@link User} has no sufficient permission for
    *           the operation.
+   * @throws BadRequestException when cbQuery has invalid members.
    */
-  @ApiMethod(path = "CloudEntities/list", httpMethod = "POST")
-  public EntityListDto list(QueryDto cbQuery, User user) throws UnauthorizedException {
+  @ApiMethod(path = "CloudEntities/list", httpMethod = HttpMethod.POST)
+  public EntityListDto list(QueryDto cbQuery, User user)
+      throws UnauthorizedException, BadRequestException {
 
     SecurityChecker.getInstance().checkIfUserIsAvailable(user);
-    return QueryOperations.getInstance().list(cbQuery, user);
+    try {
+      return QueryOperations.getInstance().processQueryRequest(cbQuery, user);
+    } catch (IllegalArgumentException e) {
+      throw new BadRequestException(e.getMessage());
+    }
   }
 }

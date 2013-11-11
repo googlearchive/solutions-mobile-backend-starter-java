@@ -26,7 +26,6 @@ import java.util.List;
  *
  *  It can be used from either front-end instances or back-end instances. In particular it can be
  * called from user request handlers in front-ends and backends instances.
- *
  */
 public class Utility {
 
@@ -91,35 +90,6 @@ public class Utility {
         .param("devices", devicesAsJson));
   }
 
-  /**
-   * Enqueues specified push alert to all registered devices
-   *
-   * @param alertMessage alert message to be sent
-   */
-  public static void enqueuePushAlertToAllDevices(String alertMessage) {
-    if (alertMessage == null) {
-      throw new IllegalArgumentException("alertMessage cannot be null");
-    }
-
-    Queue preProcessingQueue = QueueFactory.getQueue("notification-preprocessing");
-    preProcessingQueue.add(TaskOptions.Builder.withMethod(TaskOptions.Method.POST)
-        .url("/admin/push/preprocessing")
-        .param("alert", alertMessage)
-        .param("queryType", "allDevices"));
-  }
-
-  protected static void continueEnqueueingPushAlertToAllDevices(
-      String alertMessage, String cursorString) {
-    Queue preProcessingQueue = QueueFactory.getQueue("notification-preprocessing");
-    preProcessingQueue.add(TaskOptions.Builder.withMethod(TaskOptions.Method.POST)
-        .url("/admin/push/preprocessing")
-        .param("alert", alertMessage)
-        .param("cursorString", cursorString)
-        .param("queryType", "allDevices"));
-  }
-
-  // TODO(user): Add a servlet to clean up devices opt out of the push notification, and
-  // invalid certification from APNS
   static void enqueueRemovingDeviceTokens(List<String> deviceTokens) {
     Queue deviceTokenCleanupQueue = QueueFactory.getQueue("notification-device-token-cleanup");
     deviceTokenCleanupQueue.add(TaskOptions.Builder.withMethod(TaskOptions.Method.POST)

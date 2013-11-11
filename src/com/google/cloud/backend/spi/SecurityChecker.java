@@ -36,9 +36,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Manager class that provides utility methods for access control on
- * CloudEntities.
- *
+ * Manager class that provides utility methods for access control on CloudEntities.
  */
 public class SecurityChecker {
 
@@ -287,7 +285,8 @@ public class SecurityChecker {
    */
   public void checkIfKindNameAccessible(String kindName) {
     if (BackendConfigManager.CONFIGURATION_ENTITY_KIND.equals(kindName)
-        || CloudEndpointsConfigManager.ENDPOINT_CONFIGURATION_KIND.equals(kindName)) {
+        || CloudEndpointsConfigManager.ENDPOINT_CONFIGURATION_KIND.equals(kindName)
+        || BlobMetadata.ENTITY_KIND.equals(kindName)) {
       throw new IllegalArgumentException("save/saveAll: the kind name is not allowed to access: "
           + kindName);
     }

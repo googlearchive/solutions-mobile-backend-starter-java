@@ -27,7 +27,6 @@ import java.util.Map;
 
 /**
  * A JavaBeans container for CloudEntity.
- *
  */
 public class EntityDto {
 
@@ -67,7 +66,7 @@ public class EntityDto {
 
   /**
    * Creates {@link EntityDto} from Datastore {@link Entity}.
-   *
+   * 
    * @param e
    *          {@link Entity} which the EntityDto will be created from.
    * @return {@link EntityDto} created from the Entity.
@@ -120,7 +119,7 @@ public class EntityDto {
 
   /**
    * Returns a {@link Key} of the entity for this CloudEntity.
-   *
+   * 
    * @return {@link Key} of the entity for this CloudEntity.
    */
   public Key readEntityKey(User user) {
@@ -137,7 +136,7 @@ public class EntityDto {
   /**
    * Copies all the property values from this {@link EntityDto} to the specified
    * {@link Entity}.
-   *
+   * 
    * @param e
    */
   @SuppressWarnings("rawtypes")

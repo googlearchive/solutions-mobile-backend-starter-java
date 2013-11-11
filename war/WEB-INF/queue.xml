@@ -3,4 +3,16 @@
     <name>notification-delivery</name>
     <mode>pull</mode>
   </queue>
+  <queue>
+    <name>notification-device-token-cleanup</name>
+    <rate>10/s</rate>
+    <bucket-size>20</bucket-size>
+    <target>default</target>
+  </queue>
+  <queue>
+    <name>subscription-removal</name>
+    <rate>100/s</rate>
+    <bucket-size>20</bucket-size>
+    <target>default</target>
+  </queue>
 </queue-entries>

@@ -21,7 +21,6 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Holder of the configuration used by this sample. Some of them need to be changed by developers
  * that want to use this sample.
- *
  */
 public class Configuration {
   /**

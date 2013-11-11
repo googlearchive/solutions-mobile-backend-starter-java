@@ -17,19 +17,18 @@ import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 
+import org.apache.geronimo.mail.util.Base64Encoder;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 
-import org.apache.geronimo.mail.util.Base64Encoder;
-
 /**
- * Utility class for preventing XSRF attacks. The class is NOT general purposes,
- * but rather tailored to this sample. For example it assumes that it is called
- * from code that is hosted on App Engine and there is a user signed in.
- * 
+ * Utility class for preventing XSRF attacks. The class is NOT general purposes, but rather tailored
+ * to this sample. For example it assumes that it is called from code that is hosted on App Engine
+ * and there is a user signed in.
  */
 class XSRFTokenUtility {
   private static final long DEFAULT_MAX_TIME_DIFF = 1000 * 60 * 10;
@@ -38,20 +37,16 @@ class XSRFTokenUtility {
 
   /**
    * Gets a token that can be used to prevent XSRF attacks.
-   * 
-   * @param action
-   *          Identifies the action that the token can be used for (e.g.,
-   *          reading configuration).
-   * @param secretKey
-   *          SecretKey unique to this deployment.
+   *
+   * @param action Identifies the action that the token can be used for (e.g., reading
+   *     configuration).
+   * @param secretKey SecretKey unique to this deployment.
    * @return token
-   * @throws NoSuchAlgorithmException
-   *           if SHA1 algorithm is not available.
-   * @throws IOException
-   *           if encoding the token failed.
+   * @throws NoSuchAlgorithmException if SHA1 algorithm is not available.
+   * @throws IOException if encoding the token failed.
    */
-  static String getToken(String secretKey, String action) throws NoSuchAlgorithmException,
-      IOException {
+  static String getToken(String secretKey, String action)
+      throws NoSuchAlgorithmException, IOException {
     if (action == null || action.isEmpty()) {
       throw new IllegalArgumentException("'action' argument cannot be empty");
     }
@@ -67,19 +62,13 @@ class XSRFTokenUtility {
 
   /**
    * Verifies a token to prevent XSRF attacks.
-   * 
-   * @param action
-   *          Identifies the action that the token is needed for (e.g., reading
-   *          configuration)
-   * @param secretKey
-   *          SecretKey unique to this deployment.
-   * @param token
-   *          Token passed by the caller.
+   *
+   * @param action Identifies the action that the token is needed for (e.g., reading configuration)
+   * @param secretKey SecretKey unique to this deployment.
+   * @param token Token passed by the caller.
    * @return true if token is valid; false otherwise.
-   * @throws NoSuchAlgorithmException
-   *           if SHA1 algorithm is not available.
-   * @throws IOException
-   *           if encoding the token failed.
+   * @throws NoSuchAlgorithmException if SHA1 algorithm is not available.
+   * @throws IOException if encoding the token failed.
    */
   static boolean verifyToken(String secretKey, String action, String token)
       throws NoSuchAlgorithmException, IOException {
@@ -116,8 +105,7 @@ class XSRFTokenUtility {
     String expectedTokenString = buildTokenString(secretKey, action, tokenParts[1]);
 
     if (!verifySignature(tokenParts[0], expectedTokenString)) {
-      // Request is suspicious. The signature didn't match even though the time
-      // stamp was OK.
+      // Request is suspicious. The signature didn't match even though the time stamp was OK.
       try {
         Thread.sleep(new Random().nextInt(2000));
       } catch (InterruptedException e) {
@@ -136,13 +124,14 @@ class XSRFTokenUtility {
     return buildTokenString(secretKey, user.getEmail(), action, time);
   }
 
-  private static String buildTokenString(String secretKey, String user, String action, String time) {
+  private static String buildTokenString(String secretKey, String user, String action,
+      String time) {
     return secretKey + DELIM + user.replaceAll(DELIM, "_") + DELIM + action.replaceAll(DELIM, "_")
         + DELIM + time.replaceAll(DELIM, "_");
   }
 
-  private static String encodeTokenString(String tokenString) throws NoSuchAlgorithmException,
-      IOException {
+  private static String encodeTokenString(String tokenString)
+      throws NoSuchAlgorithmException, IOException {
     MessageDigest tokenSigner = MessageDigest.getInstance("SHA-1");
     byte[] token = tokenSigner.digest(tokenString.getBytes("UTF-8"));
     Base64Encoder encoder = new Base64Encoder();

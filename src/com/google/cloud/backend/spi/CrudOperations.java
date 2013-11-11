@@ -29,7 +29,6 @@ import javax.inject.Named;
 /**
  * Utility class that provides CRUD operations for CloudEntities. Uses Search
  * API and Datastore as backend.
- *
  */
 public class CrudOperations {
 
@@ -56,7 +55,7 @@ public class CrudOperations {
 
   /**
    * Saves all CloudEntities.
-   *
+   * 
    * @param cdl
    *          {@link EntityListDto} that contains the CloudEntities.
    * @param user
@@ -150,7 +149,7 @@ public class CrudOperations {
    * Returns a {@link Map} of CloudEntity IDs and {@link Entity}s for specified
    * {@link List} of {@link Key}s. It first tries to get them from Memcache, and
    * get from Datastore for entities not cached.
-   *
+   * 
    * @param keyList
    *          {@link List} of {@link Key}s
    * @return {@link Map} of CloudEntity ID and Entity.
@@ -198,7 +197,8 @@ public class CrudOperations {
         // check kindName
         String kindName = cd.getKindName();
         if (kindName == null || kindName.trim().length() == 0) {
-          throw new IllegalArgumentException("save/saveAll: Kind Name not specified in a EntityDto");
+          throw new IllegalArgumentException(
+              "save/saveAll: Kind Name not specified in a EntityDto");
         }
 
         // check if kindName is not the config kinds

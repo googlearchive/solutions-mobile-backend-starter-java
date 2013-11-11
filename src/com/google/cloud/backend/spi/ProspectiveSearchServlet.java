@@ -16,10 +16,14 @@ package com.google.cloud.backend.spi;
 import com.google.android.gcm.server.Message;
 import com.google.android.gcm.server.Result;
 import com.google.android.gcm.server.Sender;
+import com.google.appengine.api.datastore.Entity;
 import com.google.cloud.backend.config.BackendConfigManager;
 import com.google.cloud.backend.pushnotification.Utility;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServlet;
@@ -28,25 +32,17 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * A servlet class for handling Prospective Search API tasks.
- *
  */
 @SuppressWarnings("serial")
 public class ProspectiveSearchServlet extends HttpServlet {
 
   private static final int GCM_SEND_RETRIES = 3;
 
-  private static final String IOS_DEVICE_PREFIX = "ios_";
-
   private static final Logger log = Logger.getLogger(ProspectiveSearchServlet.class.getName());
 
-  protected static final String GCM_KEY_SUBID = "subId";
+  private static final BackendConfigManager backendConfigManager = new BackendConfigManager();
 
-  private final BackendConfigManager backendConfigManager = new BackendConfigManager();
-
-  private enum MobileType {
-    ANDROID,
-    IOS
-  }
+  private static final DeviceSubscription deviceSubscription = new DeviceSubscription();
 
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -61,25 +57,44 @@ public class ProspectiveSearchServlet extends HttpServlet {
     String[] subIds = req.getParameterValues("id");
     // Each subId has this format "<regId>:query:<clientSubId>"
     for (String subId : subIds) {
-      String regId = extractRegId(subId);
-      MobileType type = getMobileType(subId);
-
-      if (MobileType.ANDROID == type) {
-        sendGcmAlert(subId, regId);
-      } else if (MobileType.IOS == type) {
-        sendIosAlert(subId, new String[] {regId});
+      String regId = SubscriptionUtility.extractRegId(subId);
+      if (isSubscriptionActive(regId)) {
+        sendPushNotification(regId, subId);
+      } else {
+        SubscriptionUtility.clearSubscriptionAndDeviceEntity(Arrays.asList(regId));
       }
     }
   }
 
-  private MobileType getMobileType(String subId) {
-    return (subId.startsWith(IOS_DEVICE_PREFIX)) ? MobileType.IOS :
-        MobileType.ANDROID;
+  private void sendPushNotification(String regId, String subId) throws IOException {
+    SubscriptionUtility.MobileType type = SubscriptionUtility.getMobileType(subId);
+
+    if (SubscriptionUtility.MobileType.ANDROID == type) {
+      sendGcmAlert(subId, regId);
+    } else if (SubscriptionUtility.MobileType.IOS == type) {
+      sendIosAlert(subId, new String[] {regId});
+    }
   }
 
-  private String extractRegId(String subId) {
-    String[] tokens = subId.split(":");
-    return tokens[0].replaceFirst(IOS_DEVICE_PREFIX, "");
+  /**
+   * Checks if subscriptions for the device are active.
+   *
+   * @param deviceId A unique device identifier
+   * @return True, if subscriptions are active; False, the otherwise
+   */
+  private boolean isSubscriptionActive(String deviceId) {
+    Date lastDeleteAll = backendConfigManager.getLastSubscriptionDeleteAllTime();
+    // If the admin never requested to delete all subscriptions, then this device subscription is
+    // still active.
+    if (lastDeleteAll == null) {
+      return true;
+    }
+
+    Entity deviceEntity = deviceSubscription.get(deviceId);
+    Date latestSubscriptionTime = (Date) deviceEntity.getProperty(
+        DeviceSubscription.PROPERTY_TIMESTAMP);
+
+    return latestSubscriptionTime.after(lastDeleteAll);
   }
 
   private void sendGcmAlert(String subId, String regId)
@@ -90,18 +105,21 @@ public class ProspectiveSearchServlet extends HttpServlet {
     // Only attempt to send GCM if GcmKey is available
     if (isGcmKeySet) {
       Sender sender = new Sender(gcmKey);
-      Message message = new Message.Builder().addData(GCM_KEY_SUBID, subId).
-          build();
+      Message message = new Message.Builder().addData(SubscriptionUtility.GCM_KEY_SUBID, subId)
+          .build();
       Result r = sender.send(message, regId, GCM_SEND_RETRIES);
       if (r.getMessageId() != null) {
         log.info("ProspectiveSearchServlet: GCM sent: subId: " + subId);
       } else {
         log.warning("ProspectiveSearchServlet: GCM error for subId: " + subId +
             ", senderId: " + gcmKey + ", error: " + r.getErrorCodeName());
+        ArrayList<String> deviceIds = new ArrayList<String>();
+        deviceIds.add(regId);
+        SubscriptionUtility.clearSubscriptionAndDeviceEntity(deviceIds);
       }
     } else {
       // Otherwise, just write a log entry
-      log.info(String.format("ProspectiveSearchServlet: GCM is not sent: GcmKey: %s ",
+      log.info(String.format("ProspectiveSearchServlet: GCM is not sent: GcmKey: %s ", 
           isGcmKeySet));
     }
   }

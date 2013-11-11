@@ -22,6 +22,8 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
+import com.google.cloud.backend.spi.BlobEndpoint;
+import com.google.cloud.backend.spi.EndpointV1;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -30,6 +32,7 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -50,6 +53,7 @@ public class BackendConfigManager {
   static final String ANDROID_GCM_KEY = "gCMKey";
   static final String PUSH_NOTIFICATION_CERT_PASSWORD = "pushCertPasswd";
   static final String PUSH_NOTIFICATION_CERT_BINARY = "pushCertBinary";
+  static final String LAST_SUBSCRIPTION_DELETE_TIMESTAMP = "lastSubsciptionDeleteAllTime";
   static final String MEMCACHE_FILE_KEY = "memcache file key";
   static final String PKCS12_BASE64_PREFIX = "pkcs12;base64,";
 
@@ -126,6 +130,7 @@ public class BackendConfigManager {
       config = new Entity(key);
       config.setProperty(AUTHENTICATION_MODE, AuthMode.LOCKED.name());
       config.setProperty(PUSH_ENABLED, false);
+      config.setProperty(LAST_SUBSCRIPTION_DELETE_TIMESTAMP, null);
 
       // Generate unique secret for this app to be used for XSRF token
       SecureRandom rnd = new SecureRandom();
@@ -158,9 +163,9 @@ public class BackendConfigManager {
     configuration.setProperty(PUSH_ENABLED, pushEnabled);
     configuration.setProperty(ANDROID_GCM_KEY, androidGCMKey);
     configuration.setProperty(PUSH_NOTIFICATION_CERT_PASSWORD, pushCertPasswd);
-    if (pushCertBase64String != null && !pushCertBase64String.isEmpty()) {
+    if (!StringUtility.isNullOrEmpty(pushCertPasswd)) {
       Text data = removeClientHeaderFromData(pushCertBase64String);
-      if (data == null) {
+      if (StringUtility.isNullOrEmpty(data)) {
         log.severe("Input file is not saved as it is not in expected format and encoding");
       } else {
         configuration.setProperty(PUSH_NOTIFICATION_CERT_BINARY, data);
@@ -174,17 +179,17 @@ public class BackendConfigManager {
     List<String> clientIds = new ArrayList<String>();
     List<String> audiences = new ArrayList<String>();
 
-    if (androidClientId != null && !androidClientId.isEmpty()) {
+    if (!StringUtility.isNullOrEmpty(androidClientId)) {
       clientIds.add(androidClientId);
     }
 
-    if (iOSClientId != null && !iOSClientId.isEmpty()) {
+    if (!StringUtility.isNullOrEmpty(iOSClientId)) {
       clientIds.add(iOSClientId);
     }
 
     // Android client requires both Android Client ID and Web Client ID.
     // The latter is the same as audience field.
-    if (audience != null && !audience.isEmpty()) {
+    if (!StringUtility.isNullOrEmpty(audience)) {
       clientIds.add(audience);
       audiences.add(audience);
     } else {
@@ -195,10 +200,11 @@ public class BackendConfigManager {
       clientIds.add(new String());
     }
 
-    endpointsConfigManager.setAuthenticationInfo(clientIds, audiences);
+    endpointsConfigManager.setAuthenticationInfo(EndpointV1.class, clientIds, audiences);
+    endpointsConfigManager.setAuthenticationInfo(BlobEndpoint.class, clientIds, audiences);
   }
 
-  private Key getKey() {
+  protected Key getKey() {
     return KeyFactory.createKey(CONFIGURATION_ENTITY_KIND, CURRENT_CONFIGURATION);
   }
 
@@ -207,41 +213,55 @@ public class BackendConfigManager {
   }
 
   /**
-   * Returns {@link AuthMode} of the current configuration.
-   * 
-   * @return {@link AuthMode} of the current configuration.
+   * Sets the last subscription delete time to current time.
+   */
+  public void setLastSubscriptionDeleteAllTime(Date time) {
+    Entity config = getConfiguration();
+    config.setProperty(LAST_SUBSCRIPTION_DELETE_TIMESTAMP, time);
+    this.datastoreService.put(config);
+    this.memcache.put(getMemKeyForConfigEntity(getKey()), config);
+  }
+
+  /**
+   * Gets the last subscription deletion time.
+   * @return The last subscription deletion time.  If it's null, then no subscription delete all
+   *         has been issued yet.
+   */
+  public Date getLastSubscriptionDeleteAllTime() {
+    Entity config = getConfiguration();
+    return (Date) config.getProperty(LAST_SUBSCRIPTION_DELETE_TIMESTAMP);
+  }
+
+  /**
+   * Gets {@link AuthMode} of the current configuration.
    */
   public AuthMode getAuthMode() {
     return AuthMode.valueOf((String) getConfiguration().getProperty(AUTHENTICATION_MODE));
   }
 
   /**
-   * Returns GCM API key.
-   * 
-   * @return GCM API key.
+   * Gets GCM API key.
    */
   public String getGcmKey() {
     return (String) getConfiguration().getProperty(ANDROID_GCM_KEY);
   }
 
-  /***
-   * Returns Push Notification Certificate password.
-   * 
-   * @return Push Notification Certificate password.
+  /**
+   * Gets Push Notification Certificate password.
    */
   public String getPushCertPassword() {
     return (String) getConfiguration().getProperty(PUSH_NOTIFICATION_CERT_PASSWORD);
   }
 
   /**
-   * Return the push notification certificate as a base64-decoded input stream
+   * Gets the push notification certificate as an input stream.
    * 
-   * @return the push notification certificate as a base64-decoded input stream or null
-   *     if Datastore returns nothing 
+   * @return the push notification certificate as an input stream or null if the certificate is
+   *         not available.
    */
   public InputStream getPushNotificationCertificate() {
     Text binary = (Text) getConfiguration().getProperty(PUSH_NOTIFICATION_CERT_BINARY);
-    if (binary == null) {
+    if (StringUtility.isNullOrEmpty(binary)) {
       return null;
     }
 
@@ -249,9 +269,22 @@ public class BackendConfigManager {
   }
 
   /**
-   * Returns true if Push Notification is enabled.
-   * 
-   * @return true if Push Notification is enabled, false otherwise.
+   * Gets the push notification certificates as a byte array.
+   *
+   * @return the push notification certificate as a byte array or null if the certificate is not
+   *         available.
+   */
+  public byte[] getPushNotificationCertificateBytes() {
+    Text binary = (Text) getConfiguration().getProperty(PUSH_NOTIFICATION_CERT_BINARY);
+    if (StringUtility.isNullOrEmpty(binary)) {
+      return null;
+    }
+
+    return Base64.decodeBase64(binary.getValue().getBytes());
+  }
+
+  /**
+   * Returns true if Push Notification is enabled; False otherwise.
    */
   public boolean isPushEnabled() {
     return (Boolean) getConfiguration().getProperty(PUSH_ENABLED);
@@ -262,14 +295,17 @@ public class BackendConfigManager {
   }
 
   /**
-   * Based64 encoded data from the front end contains prefix 
-   * (i.e. "data:application/x-pkcs12;base64,"), this method is to extract the data without 
-   * the prefix
-   * 
+   * Extracts data without prefix since data from the front end is based64-encoded and prefixed with
+   * "data:application/x-pkcs12;base64,".
+   *
    * @param base64String from client
    * @return extracted data without prefix
    */
   private Text removeClientHeaderFromData(String base64String) {
+    if (StringUtility.isNullOrEmpty(base64String)) {
+      return null;
+    }
+
     int index = base64String.indexOf(PKCS12_BASE64_PREFIX);
     if (index < 0) {
       return null;

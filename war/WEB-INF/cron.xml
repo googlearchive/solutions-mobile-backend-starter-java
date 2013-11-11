@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cronentries>
+  <cron>
+    <url>/admin/push/feedbackservice/process</url>
+    <description>Query APNS Feedback service and remove inactive deviecs
+    </description>
+    <schedule>every 4 hours</schedule>
+  </cron>
+  <cron>
+    <url>/admin/push/notifications/cleanup</url>
+    <description>Remove no longer needed records of processed notifications
+    </description>
+    <target>worker</target>
+    <!-- Do the clean up at the time with lower normal traffic, e.g., in the night
+      of a given time zone. -->
+    <schedule>every day 04:45</schedule>
+    <timezone>America/New_York</timezone>
+  </cron>
+</cronentries>

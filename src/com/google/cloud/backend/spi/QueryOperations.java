@@ -29,6 +29,7 @@ import com.google.cloud.backend.beans.EntityListDto;
 import com.google.cloud.backend.beans.FilterDto;
 import com.google.cloud.backend.beans.QueryDto;
 import com.google.cloud.backend.beans.QueryDto.Scope;
+import com.google.cloud.backend.config.StringUtility;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -38,23 +39,16 @@ import java.util.logging.Logger;
 /**
  * Utility class that provides query operations for CloudEntities. Uses Search
  * API and Datastore as backend.
- *
  */
 public class QueryOperations {
-
-  /**
-   * Specifies TypeId (ID used in CloudBackend to identify type of each GCM
-   * message).
-   */
-  protected static final String GCM_TYPEID_QUERY = "query";
 
   /**
    * Name of Topic for GCM that will be used in CloudBackend as default.
    */
   public static final String PROS_SEARCH_DEFAULT_TOPIC = "defaultTopic";
 
-  // subscription will expires in 24 hours
-  private static final int PROS_SEARCH_DURATION_SEC = 60 * 60 * 24;
+  // by default subscription will not expire, which is indicated with a duration of 0 second
+  private static final int PROS_SEARCH_DURATION_SEC = 0;
 
   private static final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
@@ -75,49 +69,57 @@ public class QueryOperations {
   private QueryOperations() {
   }
 
-  public EntityListDto list(QueryDto QueryDto, User user) {
+  public EntityListDto processQueryRequest(QueryDto queryDto, User user) {
+    if (queryDto == null) {
+      throw new IllegalArgumentException("queryDto cannot be null.");
+    }
+
+    if (StringUtility.isNullOrEmpty(queryDto.getRegId()) && queryDto.getScope() != Scope.PAST) {
+      throw new IllegalArgumentException(
+          "queryDto.regId cannot be null when scope includes FUTURE queries.");
+    }
 
     // execute query for past entities
     EntityListDto cdl;
-    if (QueryDto.getScope() == Scope.PAST || QueryDto.getScope() == Scope.FUTURE_AND_PAST) {
-      cdl = executeQuery(QueryDto, user);
+    if (queryDto.getScope() == Scope.PAST || queryDto.getScope() == Scope.FUTURE_AND_PAST) {
+      cdl = executeQuery(queryDto, user);
     } else {
       cdl = new EntityListDto(); // empty
     }
 
     // add subscriber for future updates
-    if (QueryDto.getScope() == Scope.FUTURE || QueryDto.getScope() == Scope.FUTURE_AND_PAST) {
-      addQuerySubscriber(QueryDto);
+    if (queryDto.getScope() == Scope.FUTURE || queryDto.getScope() == Scope.FUTURE_AND_PAST) {
+      addQuerySubscriber(queryDto);
     }
+
     return cdl;
   }
 
-  private EntityListDto executeQuery(QueryDto QueryDto, User user) {
-
+  private EntityListDto executeQuery(QueryDto queryDto, User user) {
     // check if kindName is not the config kinds
-    SecurityChecker.getInstance().checkIfKindNameAccessible(QueryDto.getKindName());
+    SecurityChecker.getInstance().checkIfKindNameAccessible(queryDto.getKindName());
 
     // create Query
-    Query q = SecurityChecker.getInstance().createKindQueryWithNamespace(QueryDto.getKindName(),
+    Query q = SecurityChecker.getInstance().createKindQueryWithNamespace(queryDto.getKindName(),
         user);
     q.setKeysOnly();
 
     // set filters
-    FilterDto cf = QueryDto.getFilterDto();
+    FilterDto cf = queryDto.getFilterDto();
     if (cf != null) {
       q.setFilter(cf.getDatastoreFilter());
     }
 
     // add sort orders
-    if (QueryDto.getSortedPropertyName() != null) {
-      q.addSort(QueryDto.getSortedPropertyName(),
-          QueryDto.isSortAscending() ? SortDirection.ASCENDING : SortDirection.DESCENDING);
+    if (queryDto.getSortedPropertyName() != null) {
+      q.addSort(queryDto.getSortedPropertyName(),
+          queryDto.isSortAscending() ? SortDirection.ASCENDING : SortDirection.DESCENDING);
     }
 
     // add limit
     FetchOptions fo;
-    if (QueryDto.getLimit() != null && QueryDto.getLimit() > 0) {
-      fo = FetchOptions.Builder.withLimit(QueryDto.getLimit());
+    if (queryDto.getLimit() != null && queryDto.getLimit() > 0) {
+      fo = FetchOptions.Builder.withLimit(queryDto.getLimit());
     } else {
       fo = FetchOptions.Builder.withDefaults();
     }
@@ -142,21 +144,24 @@ public class QueryOperations {
     return cdl;
   }
 
-  private void addQuerySubscriber(QueryDto QueryDto) {
-
-    // ProsSearch subId = <regId>:query:<clientSubId>
-    String subId = QueryDto.getRegId() + ":" + GCM_TYPEID_QUERY + ":" + QueryDto.getQueryId();
+  private void addQuerySubscriber(QueryDto queryDto) {
+    String queryId = queryDto.getQueryId();
+    String regId = queryDto.getRegId();
+    String subId = SubscriptionUtility.constructSubId(regId, queryId);
 
     // build ProsSearch query and schema
-    // TODO: the query should include the ACL filters too
-    String query = QueryDto.buildProsSearchQuery();
-    Map<String, FieldType> schema = QueryDto.buildProsSearchSchema();
+    String query = queryDto.buildProsSearchQuery();
+    Map<String, FieldType> schema = queryDto.buildProsSearchSchema();
 
     // subscribe
-    int duration = QueryDto.getSubscriptionDurationSec() == null ? PROS_SEARCH_DURATION_SEC
-        : QueryDto.getSubscriptionDurationSec();
+    int duration = queryDto.getSubscriptionDurationSec() == null ? PROS_SEARCH_DURATION_SEC
+        : queryDto.getSubscriptionDurationSec();
     prosSearch.subscribe(PROS_SEARCH_DEFAULT_TOPIC, subId, duration, query, schema);
     log.info("addQuerySubscriber: query: " + query + ", schema: " + schema + ", duration: "
         + duration);
+
+    // Add a deviceSubscription entity which can be pulled later for subscription id clean up
+    DeviceSubscription deviceSubscription = new DeviceSubscription();
+    deviceSubscription.create(SubscriptionUtility.getMobileType(subId), regId, subId);
   }
 }

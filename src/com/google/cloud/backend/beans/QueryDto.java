@@ -20,12 +20,32 @@ import java.util.Map;
 
 /**
  * Holds AST (abstract syntax tree) for a query for CloudEntity.
- *
  */
 public class QueryDto {
 
+  /**
+   * Query scope enumeration.
+   */
   public enum Scope {
-    PAST, FUTURE, FUTURE_AND_PAST
+    /**
+     * Single retrieval of existing Cloud Entities that match the query.
+     */
+    PAST, 
+    /**
+     * Continuous retrieval of Cloud Entities that will match the query in the future.
+     *
+     * To completely stop all continuous retrieval of Cloud Entities per regId, use
+     * {@link EndpointV1.unsubscribe} method.
+     */
+    FUTURE,
+    /**
+     * Continuous retrieval of Cloud Entities that currently match or will match the query in the
+     * future.
+     *
+     * To completely stop all continuous retrieval of Cloud Entities per regId, use
+     * {@link EndpointV1.unsubscribe} method.
+     */
+    FUTURE_AND_PAST,
   }
 
   private String kindName;
@@ -110,25 +130,26 @@ public class QueryDto {
 
   /**
    * Builds a query string for Prospective Search API for this query.
-   *
+   * 
    * @return query string for Prospective Search API.
    */
   public String buildProsSearchQuery() {
 
     // add condition for _kindName property
     StringBuilder sb = new StringBuilder();
-    sb.append("(" + EntityDto.PROP_KIND_NAME + ":\"" + this.kindName + "\")");
+    sb.append("(").append(EntityDto.PROP_KIND_NAME).append(":\"").append(this.kindName).
+        append("\")");
 
     // add conditions for the filters
     if (this.cbFilter != null) {
-      sb.append(" AND " + this.cbFilter.buildProsSearchQuery());
+      sb.append(" AND ").append(this.cbFilter.buildProsSearchQuery());
     }
     return sb.toString();
   }
 
   /**
    * Builds a Map schema for Prospective Search API for this query.
-   *
+   * 
    * @return a schema as a Map for Prospective Search API.
    */
   public Map<String, FieldType> buildProsSearchSchema() {

@@ -67,9 +67,10 @@ public class CloudEndpointsConfigManager {
    *          list of audiences that will be allowed to make authenticated calls
    *          to this backend.
    */
-  public void setAuthenticationInfo(List<String> clientIds,
+  public void setAuthenticationInfo(Class<?> endpointClass,
+      List<String> clientIds,
       List<String> audiences) {
-    Entity config = getEndpointEntity(EndpointV1.class);
+    Entity config = getEndpointEntity(endpointClass);
     config.setProperty(CLIENT_IDS, clientIds);
     config.setProperty(AUDIENCES, audiences);
     datastoreService.put(config);
@@ -77,7 +78,7 @@ public class CloudEndpointsConfigManager {
     // Google Cloud Endpoints infrastructure caches the configuration in Memcache.
     // In order for the changes to be applied without restart/redeployment
     // they need to be updated not only in Datastore, but also in Memcache.
-    memcacheService.put(ENDPOINT_CONFIGURATION_KIND + "." + EndpointV1.class.getName(), config);
+    memcacheService.put(ENDPOINT_CONFIGURATION_KIND + "." + endpointClass.getName(), config);
   }
 
   private Entity getEndpointEntity(Class<?> endpointClass) {

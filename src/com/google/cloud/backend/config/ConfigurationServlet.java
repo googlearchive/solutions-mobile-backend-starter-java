@@ -15,21 +15,17 @@ package com.google.cloud.backend.config;
 
 import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.prospectivesearch.ProspectiveSearchService;
-import com.google.appengine.api.prospectivesearch.ProspectiveSearchServiceFactory;
-import com.google.appengine.api.prospectivesearch.Subscription;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.cloud.backend.beans.EntityDto;
 import com.google.cloud.backend.beans.EntityListDto;
 import com.google.cloud.backend.spi.CrudOperations;
-import com.google.cloud.backend.spi.QueryOperations;
+import com.google.cloud.backend.spi.SubscriptionUtility;
 import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServlet;
@@ -46,9 +42,6 @@ public class ConfigurationServlet extends HttpServlet {
 
   private static final UserService userService = UserServiceFactory
       .getUserService();
-
-  private static final ProspectiveSearchService prosSearch = ProspectiveSearchServiceFactory
-      .getProspectiveSearchService();
 
   private static final String KIND_NAME_PUSH_MESSAGES = "_CloudMessages";
 
@@ -185,14 +178,7 @@ public class ConfigurationServlet extends HttpServlet {
   }
 
   private void clearAllSubscriptions(JsonObject jsonResp) {
-
-    // remove all subscriptions from PSI
-    List<Subscription> subs = prosSearch
-        .listSubscriptions(QueryOperations.PROS_SEARCH_DEFAULT_TOPIC);
-    for (Subscription sub : subs) {
-      prosSearch.unsubscribe(QueryOperations.PROS_SEARCH_DEFAULT_TOPIC,
-          sub.getId());
-    }
+    SubscriptionUtility.clearAllSubscriptionAndDeviceEntity();
     jsonResp.addProperty(JSON_RESP_PROP_MESSAGE, "Cleared all subscriptions.");
   }
 

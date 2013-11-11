@@ -82,7 +82,15 @@ var onSave = function() {
 };
 
 var handleFileSelect = function(event) {
-  fileReader.readAsDataURL(event.target.files[0]);
+  var file = event.target.files[0];
+  var fileSize = file.size;
+  // Valid p12 files should be less than 100kB
+  if (fileSize > 100 * 1024) {
+    pushCertFileInput = null;
+    alert("Certificate file size exceeds 100kB limit and will not be uploaded.");
+  } else {
+    fileReader.readAsDataURL(file);
+  }
 
   fileReader.onerror = function(error) {
     console.log(error);

@@ -6,7 +6,8 @@ body, td {
 }
 
 .butter {
-  background: #EE6;
+  position: fixed;
+  background-color:rgba(238,238,102,0.5);
   font-weight: bold;
   padding: 6px;
   width: 400px;
@@ -18,7 +19,8 @@ body, td {
 }
 
 .butterRed {
-  background: #C44;
+  position: fixed;
+  background-color:rgba(208,68,68,0.5);
   font-weight: bold;
   padding: 6px;
   width: 400px;
@@ -31,6 +33,8 @@ body, td {
 }
 
 .butter-bar-reserve {
+  margin-left: 25%;
+  margin-right: 25%;
   height: 25px;
 }
 
