@@ -45,7 +45,7 @@ Confirm that your development envoriment fulfills the Requirements of [MBS Getti
 
    * Download [log4j-1.2.17.jar](http://logging.apache.org/log4j/1.2/download.html) file.
 
-8. Create a Web Application Project on Eclipse, select File > New > Web Application Project to show New Web Application Project dialog. Enter the followings:
+8. Create a Web Application Project on Eclipse, select New Web Application Project from the Google Plugin for Eclipse. This blue icon is located in the upper left hand corner of your Eclipse client. The New Web Application Project dialog should appear. Enter the followings:
 
    - Enter Project Name: MobileBackend
    - Enter Package Name: com.google.cloud.backend
@@ -55,7 +55,7 @@ Confirm that your development envoriment fulfills the Requirements of [MBS Getti
 
 9. Copy the src and war directories to the project. Extract the source code package downloaded at the step 1. Select "src" and "war" directories, copy them, and paste them to the root directory of CloudBackend project on Eclipse.
 
-10. Add the jar files into lib directory.  Copy gcm-server.jar, gson-2.1.jar, json-simple.1.1.1.jar, javaPNS-2.2.jar,common-codec-1.8, and bcprov-jdk5-14.jar (from step 2 to 7) to war/WEB-INF/lib directory. Select the six files and select Build Path > Add to Build Path on right-click menu. This will remove all the errors you have on the Problems tab.
+10. Add the jar files into lib directory.  Copy gcm-server.jar, gson-2.1.jar, json-simple.1.1.1.jar, javaPNS-2.2.jar, common-codec-1.8, log4j-1.2.17.jar, and bcprov-jdk5-14.jar (from step 2 to 7) to war/WEB-INF/lib directory. Select the six files and select Build Path > Add to Build Path on right-click menu. This will remove all the errors you have on the Problems tab.
 
 11. Deploy the backend.  Edit war/WEB-INF/appengine-web.xml and insert your app id in the "application" element below:
 

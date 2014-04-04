@@ -45,7 +45,7 @@ var onLoad = function() {
 
   var data = {};
   data.op = 'read';
-  data.token = "<%=tokenForConfigRead%>"
+  data.token = "<%=tokenForConfigRead%>";
 
   $.ajax({
      "url" : "cconf",
@@ -150,9 +150,11 @@ function showCustomTextboxDialog(message, textboxId) {
       '<form>' +
       '  <label>' + message + '</label><br>' +
       '  <input type="password" name="' + textboxId + '" id="' +
-             textboxId + '" value="' + pushCertPasswordInput + '">' +
+             textboxId + '">' +
       '</form>'
       );
+
+  $("#"+textboxId).val(pushCertPasswordInput);
 
   var height = (window.innerHeight - dialogFixedHeight) / 2;
 
@@ -216,15 +218,18 @@ var toggle = function(id, value, name) {
     <div class="header">
         <h3>Mobile Backend settings</h3>
         <div class="subtext">
-          This page lets you configure the authentication and other options for your
-          mobile backend. If you don't have a client application yet, download the
-          <a href="https://developers.google.com/cloud/samples/repository/mbs/android">Android</a>
-          or <a href="https://developers.google.com/cloud/samples/repository/mbs/iOS">iOS</a>
-          sample client application.
+          This page lets you configure the authentication and other options
+          for your mobile backend. If you don't have a client application yet,
+          download the
+          <a href="https://developers.google.com/cloud/samples/repository/mbs/android">
+          Android</a>or
+          <a href="https://developers.google.com/cloud/samples/repository/mbs/iOS">
+          iOS</a> sample client application.
         </div>
         <div class="butter-bar-reserve">
           <div class='butter' id='butter'>Done</div>
-          <div class='butterRed' id='butter401'>Reload the page and try again</div>
+          <div class='butterRed' id='butter401'>Reload the page and try again
+          </div>
         </div>
     </div>
     <div class="headerspacer"></div>

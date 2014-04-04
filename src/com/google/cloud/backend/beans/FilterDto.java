@@ -168,7 +168,7 @@ public class FilterDto {
     case GT:
       return "( " + getPropName() + " > " + getOperandString() + " )";
     case GE:
-      return "( " + getPropName() + " <= " + getOperandString() + " )";
+      return "( " + getPropName() + " >= " + getOperandString() + " )";
     case NE:
       return "(NOT " + getPropName() + " : " + getOperandString() + ")";
     case IN:

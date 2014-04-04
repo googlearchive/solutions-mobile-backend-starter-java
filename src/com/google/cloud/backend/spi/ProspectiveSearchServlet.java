@@ -91,6 +91,9 @@ public class ProspectiveSearchServlet extends HttpServlet {
     }
 
     Entity deviceEntity = deviceSubscription.get(deviceId);
+    if (deviceEntity == null) {
+      return false;
+    }
     Date latestSubscriptionTime = (Date) deviceEntity.getProperty(
         DeviceSubscription.PROPERTY_TIMESTAMP);
 

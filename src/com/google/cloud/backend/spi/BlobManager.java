@@ -35,7 +35,7 @@ import java.util.logging.Logger;
  */
 class BlobManager {
   private static final Logger logger = Logger.getLogger(BlobManager.class.getSimpleName());
-  private static final DatastoreService dataStore = DatastoreServiceFactory.getDatastoreService();
+  static DatastoreService dataStore = DatastoreServiceFactory.getDatastoreService();
 
   /**
    * Gets blob metadata.
