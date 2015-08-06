@@ -1,3 +1,9 @@
+![status: inactive](https://img.shields.io/badge/status-inactive-red.svg)
+
+This project is no longer actively developed or maintained.  
+
+For new work on this check out [Mobile Shopping Assistant](https://github.com/GoogleCloudPlatform/MobileShoppingAssistant-sample) or [Cloud Endpoints](https://cloud.google.com/endpoints/).
+
 # Mobile Backend Starter Java
 
 This application implements Mobile Backend Starter using Google Cloud Endpoints, App Engine and Java.
